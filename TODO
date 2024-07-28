@@ -1,0 +1,3 @@
+- start server and store token
+- send (multiple) play 72 osc messages to server
+- keep sending keepalive pings to server
