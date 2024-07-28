@@ -14,8 +14,19 @@
   "contributes": {
     "commands": [{
       "command": "sonic-pi-studio.helloWorld",
-      "title": "Hello World"
-    }]
+      "title": "Hello World "
+    }],
+    "configuration": {
+      "type": "object",
+      "title": "Sonic Pi Configuration",
+      "properties": {
+          "sonicPi.path": {
+              "type": "string",
+              "default": "~/projects/sonic-pi/",
+              "description": "Path to the Sonic Pi folder"
+          }
+      }
+    }
   },
   "scripts": {
     "lint": "eslint .",
