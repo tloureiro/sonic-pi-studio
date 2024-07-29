@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 
-const { helloWorld } = require('./commands');
+const { helloWorld, startServer, playTestNote } = require('./commands');
 
 
 // This method is called when your extension is activated
@@ -15,9 +15,20 @@ function activate(context) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "sonic-pi-studio" is now active!');
 
-	const disposable = vscode.commands.registerCommand('sonic-pi-studio.helloWorld', helloWorld);
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sonic-pi-studio.helloWorld', helloWorld)
+	);
 
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sonic-pi-studio.startServer', () => {
+			startServer(context);
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sonic-pi-studio.playTestNote', playTestNote)
+	);	
+
 }
 
 function deactivate() {}

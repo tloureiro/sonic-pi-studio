@@ -12,19 +12,29 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [{
-      "command": "sonic-pi-studio.helloWorld",
-      "title": "Hello World "
-    }],
+    "commands": [
+      {
+        "command": "sonic-pi-studio.helloWorld",
+        "title": "Hello World "
+      },
+      {
+        "command": "sonic-pi-studio.startServer",
+        "title": "Sonic Pi Studio: Start Server"
+      },
+      {
+        "command": "sonic-pi-studio.playTestNote",
+        "title": "Sonic Pi Studio: Play Test Note"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Sonic Pi Configuration",
       "properties": {
-          "sonicPi.path": {
-              "type": "string",
-              "default": "~/projects/sonic-pi/",
-              "description": "Path to the Sonic Pi folder"
-          }
+        "sonicPi.path": {
+          "type": "string",
+          "default": "~/projects/sonic-pi/",
+          "description": "Path to the Sonic Pi folder"
+        }
       }
     }
   },
@@ -33,13 +43,16 @@
     "pretest": "npm run lint",
     "test": "vscode-test"
   },
+  "dependencies": {
+    "node-osc": "^9.1.3"
+  },
   "devDependencies": {
-    "@types/vscode": "^1.91.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
-    "eslint": "^8.57.0",
-    "typescript": "^5.4.5",
+    "@types/vscode": "^1.91.0",
     "@vscode/test-cli": "^0.0.9",
-    "@vscode/test-electron": "^2.4.0"
+    "@vscode/test-electron": "^2.4.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
   }
 }
