@@ -1,7 +1,8 @@
 const vscode = require('vscode');
 
-const { helloWorld, startServer, playTestNote } = require('./commands');
+const { helloWorld, startServer, playTestNote, stopServer } = require('./commands');
 
+let storedContext;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -10,30 +11,42 @@ const { helloWorld, startServer, playTestNote } = require('./commands');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
+  storedContext = context;
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "sonic-pi-studio" is now active!');
+  context.subscriptions.push(vscode.commands.registerCommand('sonic-pi-studio.helloWorld', helloWorld));
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand('sonic-pi-studio.helloWorld', helloWorld)
-	);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('sonic-pi-studio.startServer', () => {
+      startServer(context);
+    })
+  );
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand('sonic-pi-studio.startServer', () => {
-			startServer(context);
-		})
-	);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('sonic-pi-studio.stopServer', () => {
+      stopServer(context);
+    })
+  );
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand('sonic-pi-studio.playTestNote', playTestNote)
-	);	
+  context.subscriptions.push(
+    vscode.commands.registerCommand('sonic-pi-studio.playTestNote', () => {
+      playTestNote(context);
+    })
+  );
 
+  // Add a listener to send the exit message when VSCode is closed
+  context.subscriptions.push({
+    dispose: () => {
+      stopServer(context);
+    },
+  });
 }
 
-function deactivate() {}
+function deactivate() {
+  // we don't receive the context here, so we need to use the stored one
+  stopServer(storedContext);
+}
 
 module.exports = {
-	activate,
-	deactivate
-}
+  activate,
+  deactivate,
+};

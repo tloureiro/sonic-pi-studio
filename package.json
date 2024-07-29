@@ -24,6 +24,10 @@
       {
         "command": "sonic-pi-studio.playTestNote",
         "title": "Sonic Pi Studio: Play Test Note"
+      },
+      {
+        "command": "sonic-pi-studio.stopServer",
+        "title": "Sonic Pi Studio: Stop Server"
       }
     ],
     "configuration": {
