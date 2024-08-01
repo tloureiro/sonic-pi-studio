@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 
-const { helloWorld, startServer, playTestNote, stopServer } = require('./commands');
+const { startServer, playTestNote, stopServer } = require('./commands');
 
 let storedContext;
 
@@ -13,7 +13,8 @@ let storedContext;
 function activate(context) {
   storedContext = context;
 
-  context.subscriptions.push(vscode.commands.registerCommand('sonic-pi-studio.helloWorld', helloWorld));
+  const logChannel = vscode.window.createOutputChannel('Sonic Pi Studio');
+  context.workspaceState.update('logChannel', logChannel);
 
   context.subscriptions.push(
     vscode.commands.registerCommand('sonic-pi-studio.startServer', () => {

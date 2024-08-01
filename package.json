@@ -14,10 +14,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "sonic-pi-studio.helloWorld",
-        "title": "Hello World "
-      },
-      {
         "command": "sonic-pi-studio.startServer",
         "title": "Sonic Pi Studio: Start Server"
       },
@@ -38,6 +34,15 @@
           "type": "string",
           "default": "~/projects/sonic-pi/",
           "description": "Path to the Sonic Pi folder"
+        },
+        "sonicPi.runningMode": {
+          "type": "string",
+          "default": "Current Folder",
+          "description": "Specifies the running mode for Sonic Pi code execution.",
+          "enum": ["Current Folder"],
+          "enumDescriptions": [
+            "Runs all the .rb files present in the folder of the last saved file."
+          ]
         }
       }
     }
