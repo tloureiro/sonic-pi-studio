@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 
-const { startServer, playTestNote, stopServer } = require('./commands');
+const { startServer, playTestNote, stopServer, keepServerAlive, startFileWatcher, stopFileWatcher } = require('./commands');
 
 let storedContext;
 
@@ -19,12 +19,22 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('sonic-pi-studio.startServer', () => {
       startServer(context);
+
+      // Set up a timer to keep the server alive by pinging it every 5 seconds
+      const keepAliveInterval = setInterval(() => {
+        keepServerAlive(context);
+      }, 5000);
+
+      context.workspaceState.update('keepAliveInterval', keepAliveInterval);
+
+      startFileWatcher(context);
     })
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand('sonic-pi-studio.stopServer', () => {
       stopServer(context);
+      stopFileWatcher(context);
     })
   );
 
@@ -38,12 +48,18 @@ function activate(context) {
   context.subscriptions.push({
     dispose: () => {
       stopServer(context);
+      stopFileWatcher(context);
     },
   });
 }
 
 function deactivate() {
   // we don't receive the context here, so we need to use the stored one
+  const keepAliveInterval = storedContext.workspaceState.get('keepAliveInterval');
+  if (keepAliveInterval) {
+    clearInterval(keepAliveInterval);
+  }
+
   stopServer(storedContext);
 }
 

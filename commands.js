@@ -2,6 +2,10 @@ const vscode = require('vscode');
 const { getSonicPiPath } = require('./utils');
 const { spawn } = require('child_process');
 const OSC = require('node-osc');
+const path = require('path');
+const fs = require('fs');
+
+let fileWatcher;
 
 // Function to start the Sonic Pi daemon and capture output
 function startServer(context) {
@@ -111,6 +115,11 @@ function stopServer(context) {
   const ports = context.workspaceState.get('sonicPiPorts');
   const oscServerClient = context.workspaceState.get('oscServerClient');
   const oscDaemonClient = context.workspaceState.get('oscDaemonClient');
+  const keepAliveInterval = context.workspaceState.get('keepAliveInterval');
+
+  if (keepAliveInterval) {
+    clearInterval(keepAliveInterval);
+  }
 
   if (!ports || !oscDaemonClient || !oscServerClient) {
     vscode.window.showErrorMessage('Sonic Pi ports are not set or OSC clients are not initialized. Please start the server first.');
@@ -132,8 +141,97 @@ function stopServer(context) {
   });
 }
 
+function keepServerAlive(context) {
+  const oscDaemonClient = context.workspaceState.get('oscDaemonClient');
+  const ports = context.workspaceState.get('sonicPiPorts');
+
+  if (!oscDaemonClient || !ports) {
+    vscode.window.showErrorMessage('OSC Daemon client or Sonic Pi ports are not initialized. Please start the server first.');
+    return;
+  }
+
+  const token = ports.token;
+
+  // Send the keep-alive OSC message
+  oscDaemonClient.send('/daemon/keep-alive', token, (error) => {
+    if (error) {
+      const logChannel = context.workspaceState.get('logChannel');
+      logChannel.appendLine('Failed to send keep-alive message: ' + error.message);
+    }
+  });
+}
+
+function startFileWatcher(context) {
+  if (!fileWatcher) {
+    fileWatcher = vscode.workspace.createFileSystemWatcher('**/*.rb');
+
+    fileWatcher.onDidChange((uri) => {
+      const folder = path.dirname(uri.fsPath);
+      concatenateAndSendCode(folder, context);
+    });
+
+    context.subscriptions.push(fileWatcher);
+
+    const logChannel = context.workspaceState.get('logChannel');
+    logChannel.appendLine('File watcher started.');
+  }
+}
+
+function stopFileWatcher(context) {
+  if (fileWatcher) {
+    fileWatcher.dispose();
+    fileWatcher = null;
+
+    const logChannel = context.workspaceState.get('logChannel');
+    logChannel.appendLine('File watcher stopped.');
+  }
+}
+
+function concatenateAndSendCode(folder, context) {
+  const logChannel = context.workspaceState.get('logChannel');
+  logChannel.appendLine(`Concatenating .rb files in folder: ${folder}`);
+
+  try {
+    const files = fs.readdirSync(folder).filter((file) => file.endsWith('.rb'));
+
+    let concatenatedCode = '';
+
+    files.forEach((file) => {
+      const filePath = path.join(folder, file);
+      const code = fs.readFileSync(filePath, 'utf8');
+      concatenatedCode += code + '\n';
+    });
+
+    logChannel.appendLine(`Concatenated code:\n${concatenatedCode}`);
+    sendCodeToSonicPi(concatenatedCode, context);
+  } catch (error) {
+    vscode.window.showErrorMessage(`Error concatenating .rb files: ${error.message}`);
+    logChannel.appendLine(`Error concatenating .rb files: ${error.stack}`);
+  }
+}
+
+function sendCodeToSonicPi(code, context) {
+  const oscServerClient = context.workspaceState.get('oscServerClient');
+  const ports = context.workspaceState.get('sonicPiPorts');
+
+  if (!oscServerClient || !ports) {
+    vscode.window.showErrorMessage('OSC client or Sonic Pi ports are not initialized. Please start the server first.');
+    return;
+  }
+
+  const token = ports.token;
+
+  // Send the concatenated code to the Sonic Pi server
+  oscServerClient.send('/run-code', token, code);
+  const logChannel = context.workspaceState.get('logChannel');
+  logChannel.appendLine('Concatenated code sent to Sonic Pi server.');
+}
+
 module.exports = {
   startServer,
   stopServer,
   playTestNote,
+  keepServerAlive,
+  startFileWatcher,
+  stopFileWatcher,
 };
