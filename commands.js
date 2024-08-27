@@ -97,18 +97,7 @@ function startServer(context) {
 }
 
 function playTestNote(context) {
-  const oscServerClient = context.workspaceState.get('oscServerClient');
-  const ports = context.workspaceState.get('sonicPiPorts');
-
-  if (!oscServerClient || !ports) {
-    vscode.window.showErrorMessage('OSC client or Sonic Pi ports are not initialized. Please start the server first.');
-    return;
-  }
-
-  const token = ports.token;
-
-  // Send the OSC message to play a test note
-  oscServerClient.send('/run-code', token, 'play 72');
+  sendCodeToSonicPi('play 72', context);
 }
 
 function stopServer(context) {
@@ -202,7 +191,6 @@ function concatenateAndSendCode(folder, context) {
       concatenatedCode += code + '\n';
     });
 
-    logChannel.appendLine(`Concatenated code:\n${concatenatedCode}`);
     sendCodeToSonicPi(concatenatedCode, context);
   } catch (error) {
     vscode.window.showErrorMessage(`Error concatenating .rb files: ${error.message}`);
@@ -224,7 +212,7 @@ function sendCodeToSonicPi(code, context) {
   // Send the concatenated code to the Sonic Pi server
   oscServerClient.send('/run-code', token, code);
   const logChannel = context.workspaceState.get('logChannel');
-  logChannel.appendLine('Concatenated code sent to Sonic Pi server.');
+  logChannel.appendLine('Concatenated code sent to Sonic Pi server.' + code);
 }
 
 module.exports = {
